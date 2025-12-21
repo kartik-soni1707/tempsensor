@@ -18,13 +18,12 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await supabase
       .from('sensor_data')
-      .select('*', 'row_number() over (order by recorded_at desc) as rn')
+      .select('*')
       .order('recorded_at', { ascending: false })
       .limit(1000);
 
     if (error) throw error;
-    const sampled = data.filter((row) => row.rn % 60 === 0);
-    res.status(200).json(sampled);
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
