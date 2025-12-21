@@ -1,22 +1,31 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
-)
+);
 
 export default async function handler(req, res) {
+  // Allow requests from your frontend
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end(); // preflight request
+  }
+
   try {
     const { data, error } = await supabase
-      .from('sensor_data')       // <-- replace with your table
+      .from('sensor_data')
       .select('*')
-      .order('recorded_at', {ascending:false})
-      .limit(500)         // <-- fields you want
+      .order('created_at', { ascending: false })
+      .limit(100);
 
-    if (error) throw error
+    if (error) throw error;
 
-    res.status(200).json(data)
+    res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
 }
