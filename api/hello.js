@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await supabase
       .from('sensor_data')
-      .select('*')
+      .select('*', 'row_number() over (order by recorded_at desc) as rn')
       .order('recorded_at', { ascending: false })
       .limit(1000);
 
