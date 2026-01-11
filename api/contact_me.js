@@ -1,21 +1,23 @@
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+
+  // ✅ CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Handle preflight FIRST
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // ✅ Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  let body;
-  try {
-    body = req.body;
-  } catch {
-    return res.status(400).json({ message: 'Invalid JSON body' });
-  }
-
-  const { name, email, message } = body || {};
+  const { name, email, message } = req.body || {};
 
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'Missing required fields' });
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ message: 'Email sent successfully' });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Failed to send email' });
