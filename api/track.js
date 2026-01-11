@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch'; // needed if doing IP → region
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -25,8 +24,8 @@ export default async function handler(req, res) {
   try {
     if (ip) {
       const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-      const geoData = await geoRes.json();
-      region = geoData.region || geoData.country_name || null;
+        const geoData = await geoRes.json();
+        region = geoData.region || geoData.country_name || null;
     }
   } catch (err) {
     console.warn('Geo lookup failed', err);
