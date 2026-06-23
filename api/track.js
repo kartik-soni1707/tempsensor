@@ -1,18 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import nodemailer from 'nodemailer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
-
-const mailer = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export default async function handler(req, res) {
   // CORS
@@ -41,14 +32,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data: existing } = await supabase
-      .from('page_hits')
-      .select('id')
-      .eq('ip_address', ip)
-      .limit(1);
-
-    const isNewVisitor = !existing || existing.length === 0;
-
     const { error } = await supabase.from('page_hits').insert([
       {
         page,
@@ -62,15 +45,6 @@ export default async function handler(req, res) {
     if (error) {
       console.error('Supabase error:', error);
       return res.status(500).json({ message: 'Database error' });
-    }
-
-    if (isNewVisitor && ip) {
-      mailer.sendMail({
-        from: `"Site Tracker" <${process.env.EMAIL_USER}>`,
-        to: process.env.EMAIL_TO,
-        subject: `New visitor on ${page}`,
-        text: `IP: ${ip}\nRegion: ${region || 'unknown'}\nPage: ${page}\nUser-Agent: ${req.headers['user-agent'] || 'unknown'}\nReferrer: ${req.headers.referer || 'none'}`,
-      }).catch(err => console.error('Email failed:', err));
     }
 
     return res.status(200).json({ message: 'Hit recorded' });
